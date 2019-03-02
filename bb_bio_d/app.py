@@ -6,7 +6,7 @@ import numpy as np
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, desc
 
 from flask import Flask, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
@@ -37,9 +37,49 @@ def index():
 #    return '<h1> App started ... </h1>'
     return render_template("index.html")
 
+# This commentis annoying
 
 @app.route("/names")
 def names():
+    """Return a list of sample (table column) names."""
+    return jsonify(Samples.__table__.columns.keys()[2:])
+
+@app.route("/metadata/<sample>")
+def sample_metadata(sample):
+    """Return the MetaData for a given sample."""
+
+    meta_cols = Samples_Metadata.__dict__
+
+    desc = ['Sample Id', 'Ethnicity', 'Gender', 'Age', 'Location', 'BB Type', 'Wash Freq']
+    cols = ['sample', 'ETHNICITY', 'GENDER', 'AGE', 'LOCATION', 'BBTYPE', 'WFREQ']
+    sel  = [meta_cols[c] for c in cols]
+
+    results = db.session.query(*sel).filter(Samples_Metadata.sample == sample).first()
+    print (results)
+    
+    #return jsonify([{desc[i]:list(results)[i] for i in range(0,len(desc))}][0])
+    return jsonify([{desc[i]:results[i] for i in range(0,len(desc))}][0])
+
+
+@app.route("/samples/<sample>")
+def samples(sample):
+    """Return `otu_ids`, `otu_labels`,and `sample_values`."""
+
+    sample_cols = Samples.__dict__
+    sel = [sample_cols[c] for c in ['otu_id', 'otu_label', sample]]
+
+    # Query and filter the data sample, only keep rows with values above 1
+    results = db.session.query(*sel).filter(sel[2]>1).order_by(desc(sel[2])).all()
+
+    data = {'otu_id'   :[r[0] for r in results], 
+            'otu_label':[r[1] for r in results], 
+            'samples'  :[r[2] for r in results]}
+
+    return jsonify(data)
+
+
+@app.route("/oldnames")
+def oldnames():
     """Return a list of sample names."""
 
     # Use Pandas to perform the sql query
@@ -50,8 +90,9 @@ def names():
     return jsonify(list(df.columns)[2:])
 
 
-@app.route("/metadata/<sample>")
-def sample_metadata(sample):
+
+@app.route("/oldmetadata/<sample>")
+def old_sample_metadata(sample):
     """Return the MetaData for a given sample."""
     sel = [
         Samples_Metadata.sample,
@@ -64,6 +105,8 @@ def sample_metadata(sample):
     ]
 
     results = db.session.query(*sel).filter(Samples_Metadata.sample == sample).all()
+
+    print (results)
 
     # Create a dictionary entry for each row of metadata information
     sample_metadata = {}
@@ -80,8 +123,8 @@ def sample_metadata(sample):
     return jsonify(sample_metadata)
 
 
-@app.route("/samples/<sample>")
-def samples(sample):
+@app.route("/oldsamples/<sample>")
+def oldsamples(sample):
     """Return `otu_ids`, `otu_labels`,and `sample_values`."""
     stmt = db.session.query(Samples).statement
     df = pd.read_sql_query(stmt, db.session.bind)
@@ -97,6 +140,5 @@ def samples(sample):
     }
     return jsonify(data)
 
-
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
