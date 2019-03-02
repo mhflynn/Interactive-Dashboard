@@ -11,7 +11,7 @@
     <title>Belly Button Dashboard</title>
   </head>
   <body>
-    <div class="container">
+    <div class="container-fluid">
         <div class="row">
           <div class="col-md-12 jumbotron text-center">
             <h1>Belly Button Biodiversity Dashboard</h1>
@@ -26,28 +26,33 @@
                 <select id="selDataset" onchange="optionChanged(this.value)"></select>
               </div>
             </div>
-              <div class="card">
-                <div class="card-header">
-                  Sample Metadata
-                </div>
-                <div class="card-body p-0">
-                  <table class="table table-sm">
-                    <tbody id="meta-table">
-                      <tr>
-                        <td class="text-center">Data 1</td>
-                        <td>35 ddddddddd</td>
-                      </tr>
-                      <tr>
-                        <td class="text-center">Data 2</td>
-                        <td>25 dddddddddddddd</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+            <div class="card">
+              <div class="card-header">
+                Sample Metadata
+              </div>
+              <div class="card-body p-0">
+                <table class="table table-sm">
+                  <tbody id="meta-table">
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
+          <div class="col-md-5" id="pie-chart">
+
+          </div>
+          <div class="col-md-4" id="gauge-chart">
+
+          </div>
         </div>
+      </div>
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-12" id="scatter-plot">
+  
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Optional JavaScript -->

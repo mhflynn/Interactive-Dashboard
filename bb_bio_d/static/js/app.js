@@ -1,5 +1,6 @@
 
-var metaData = [];
+var gMetaData = [];
+var gSamples = {};
 
 function buildMetadata(sample) {
 
@@ -17,17 +18,48 @@ function buildMetadata(sample) {
     // BONUS: Build the Gauge Chart
     // buildGauge(data.WFREQ);
 
-    d3.json(`/metadata/${sample}`).then((mData) => metaData = mData);
+  d3.json(`/metadata/${sample}`).then((metaData) => {
+    d3.select('#meta-table').html("");  
+    Object.entries(metaData).forEach(md => {
+      tr = d3.select('#meta-table').append('tr');
+      tr.append('td').text(md[0]);
+      tr.append('td').text(`: ${md[1]}`)
+    });
+  });
 }
 
 function buildCharts(sample) {
-  // @TODO: Use `d3.json` to fetch the sample data for the plots
 
-    // @TODO: Build a Bubble Chart using the sample data
+  d3.json(`/samples/${sample}`).then(samples => {
+    gSamples = samples;
 
-    // @TODO: Build a Pie Chart
-    // HINT: You will need to use slice() to grab the top 10 sample_values,
-    // otu_ids, and labels (10 each).
+    // Set up pie chart
+    trace = {
+      values : samples.samples.slice(0,10),
+      labels : samples.otu_id.slice(0,10),
+      hovertext: samples.otu_label.slice(0, 10),
+      hoverinfo: "hovertext",
+      type: 'pie'
+    }
+
+    layout = {margin: {t:0, l:0, b:0, r:0},
+              height:400, width:550};
+    //layout = {height:600, width:600};
+    //layout = {autosize:true, automargin:true};
+
+    Plotly.plot('pie-chart', [trace], layout)
+
+    // Setup the bubble chart
+    trace = {
+      x: samples.otu_id,
+      y: samples.samples,
+      mode: 'markers',
+      marker: { size:samples.samples}
+    }
+    layout = {title:"Scatter", height:700, width:1800}
+
+    Plotly.plot('scatter-plot',[trace], layout, {})
+  });
 }
 
 function init() {
